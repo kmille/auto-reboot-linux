@@ -1,0 +1,61 @@
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Maintainer: Jelle van der Waa <jelle@archlinux.org>
+# Contributor: Thorsten Töpper <atsutane-tu@freethoughts.de>
+
+pkgname=i3lock
+pkgver=2.15
+pkgrel=3
+pkgdesc='Improved screenlocker based upon XCB and PAM'
+url='https://i3wm.org/i3lock/'
+arch=('x86_64')
+license=('MIT')
+groups=('i3')
+depends=(
+  'cairo' 'libcairo.so'
+  'glibc'
+  'libev' 'libev.so'
+  'libxcb'
+  'libxkbcommon' 'libxkbcommon.so'
+  'libxkbcommon-x11' 'libxkbcommon-x11.so'
+  'pam' 'libpam.so'
+  'xcb-util'
+  'xcb-util-image'
+  'xcb-util-xrm'
+)
+makedepends=(
+  'meson'
+)
+options=('docs')
+backup=('etc/pam.d/i3lock')
+source=(https://i3wm.org/i3lock/$pkgname-$pkgver.tar.xz{,.asc} 1-killswitch.diff 2-log-last-auth-date.diff)
+sha512sums=('6079f5233c0820c6e38f3cd8f3732d585e95e7d670408e4fb18ab580a2e1face8f3d6ea13eaaeedc8671f74def917183667e736b35306bf7c630d40625b41ac2'
+            'SKIP'
+            '64a2c633da2f911138e3f19fa3917d273bb2d40b86bdb2ee9295ad8437a17f10a5a30a06d8fd99efe437b5e02d26172095f2fa90246bbe6da649fd9096fe3621'
+            '4db07e36d86dbccfadae551404399769dccdd855dd60cc97c39c0207c4d65b399368fd62eef3976a5fc69579851e6dbfc7e018819c079d44d2d5850e387194c7')
+validpgpkeys=('424E14D703E7C6D43D9D6F364E7160ED4AC8EE1D') # Michael Stapelberg
+
+prepare() {
+  cd ${pkgname}-${pkgver}
+
+  # Fix ticket FS#31544, sed line taken from gentoo
+  sed -i -e 's:login:system-auth:' pam/i3lock
+
+  patch < ../1-killswitch.diff
+  patch < ../2-log-last-auth-date.diff
+}
+
+
+build() {
+  arch-meson $pkgname-$pkgver build
+  meson compile -C build
+}
+
+package() {
+  DESTDIR="$pkgdir" meson install -C build
+
+  cd ${pkgname}-${pkgver}
+  install -Dm 644 i3lock.1 -t "${pkgdir}/usr/share/man/man1"
+  install -Dm 644 LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
+}
+
+# vim: ts=2 sw=2 et:

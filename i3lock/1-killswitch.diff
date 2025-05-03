@@ -1,0 +1,23 @@
+commit 116fb1f4b2583cc67fede41176296329c1604e3c
+Author: kmille <github@androidloves.me>
+Date:   Sun May 28 19:24:51 2023 +0200
+
+    Add kill switch
+
+diff --git a/i3lock.c b/i3lock.c
+index 159ea9f..0bdd5a3 100644
+--- a/i3lock.c
++++ b/i3lock.c
+@@ -419,6 +419,12 @@ static void handle_key_press(xcb_key_press_event_t *event) {
+     }
+ 
+     switch (ksym) {
++        case XKB_KEY_s:
++            if ((ksym == XKB_KEY_s && ctrl) ||
++                ksym == XKB_KEY_Escape) {
++                system("bash -c 'sync; poweroff'");
++            }
++            break;
+         case XKB_KEY_u:
+         case XKB_KEY_Escape:
+             if ((ksym == XKB_KEY_u && ctrl) ||

@@ -1,0 +1,32 @@
+commit 63863697eaa9c227f21c77badc7e04dc652e1224
+Author: kmille <github@androidloves.me>
+Date:   Sat Mar 15 21:41:25 2025 +0100
+
+    Log current time to state file after successful authentication
+
+diff --git a/i3lock.c b/i3lock.c
+index bcd6976..53e712b 100644
+--- a/i3lock.c
++++ b/i3lock.c
+@@ -294,6 +294,21 @@ static void input_done(void) {
+         DEBUG("successfully authenticated\n");
+         clear_password_memory();
+ 
++        FILE *fp;
++        char state_file[50];
++        time_t now = time(NULL);
++
++        sprintf(state_file, "/run/user/%d/i3/unlocked.txt", getuid());
++        fp = fopen(state_file, "w");
++        if(fp == NULL) {
++            DEBUG("Could not not open file '%s'\n", state_file);
++        } else {
++            struct tm *local_time = localtime(&now);
++            fprintf(fp, "%s", asctime(local_time));
++            fclose(fp);
++            DEBUG("successfully updated state file '%s': %s\n", state_file, asctime(local_time));
++        }
++
+         /* PAM credentials should be refreshed, this will for example update any kerberos tickets.
+          * Related to credentials pam_end() needs to be called to cleanup any temporary
+          * credentials like kerberos /tmp/krb5cc_pam_* files which may of been left behind if the

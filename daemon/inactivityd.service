@@ -1,0 +1,10 @@
+[Unit]
+Description = inactivityd - executes a kill switch command when a monitored file does not change for a set period of time
+After = display-manager.service
+
+[Service]
+EnvironmentFile=/etc/inactivity.env
+ExecStart=/usr/bin/inactivityd
+
+[Install]
+WantedBy = multi-user.target

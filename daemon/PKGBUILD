@@ -1,0 +1,38 @@
+# Maintainer: kmille github@androidloves.me
+
+pkgname=inactivityd-git
+pkgver=r2.ba25c65
+pkgrel=1
+pkgdesc="execute a kill switch command when monitored file does not change for a period of time"
+arch=('x86_64')
+url="https://github.com/kmille/auto-reboot-linux"
+license=('GPL-3.0-or-later')
+makedepends=(go)
+depends=()
+source=("git+https://github.com/kmille/auto-reboot-linux")
+sha256sums=('SKIP')
+
+
+pkgver() {
+  cd auto-reboot-linux/daemon
+  ( set -o pipefail
+    git describe --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g' ||
+    printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+  )
+}
+
+build() {
+  cd auto-reboot-linux/daemon
+  export CGO_CPPFLAGS="${CPPFLAGS}"
+  export CGO_CFLAGS="${CFLAGS}"
+  export CGO_CXXFLAGS="${CXXFLAGS}"
+  export CGO_LDFLAGS="${LDFLAGS}"
+  export GOFLAGS="-buildmode=pie -trimpath -ldflags=-linkmode=external -mod=readonly -modcacherw"
+  go build -o inactivityd ./main.go
+}
+
+package() {
+  cd auto-reboot-linux/daemon
+  install -Dm755 inactivityd "$pkgdir"/usr/bin/inactivityd
+  install -Dm644 inactivityd.service "$pkgdir"/usr/lib/systemd/system/inactivityd.service
+}
